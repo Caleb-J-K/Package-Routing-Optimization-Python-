@@ -1,5 +1,4 @@
 
-
 class HashTable:
 
     #initialize the hash table with a given size

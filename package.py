@@ -1,7 +1,4 @@
 
-
-
-
 class Package:
     #constructor for the package class
     def __init__(self, package_id, address, city, state, zip_code, deadline, weight, special_notes):
