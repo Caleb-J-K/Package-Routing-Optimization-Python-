@@ -1,5 +1,5 @@
 import unittest
-from package import Package
+from src.package import Package
 
 
 class TestPackage(unittest.TestCase):

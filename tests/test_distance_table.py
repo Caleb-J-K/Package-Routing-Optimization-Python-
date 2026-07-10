@@ -1,6 +1,6 @@
 import unittest
 
-from distancetable import DistanceTable
+from src.distance_table import DistanceTable
 
 
 class TestDistanceTable(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestDistanceTable(unittest.TestCase):
         self.distance_table = DistanceTable()
 
         self.distance_table.load_distances(
-            "Distance_File.csv"
+            "data/distance_file.csv"
         )
 
 
