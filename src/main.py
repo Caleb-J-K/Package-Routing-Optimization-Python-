@@ -5,11 +5,19 @@ also serves as the main entry point for the routing program.
 """
 import csv
 
-from hashtable import HashTable
-from package import Package
-from distancetable import DistanceTable
+from src.hash_table import HashTable
+from src.package import Package
+from src.distance_table import DistanceTable
+from pathlib import Path
 
-PACKAGE_FILE = "Package_File.csv"
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+DATA_DIR = BASE_DIR / "data"
+
+PACKAGE_FILE = DATA_DIR / "package_file.csv"
+DISTANCE_FILE = DATA_DIR / "distance_file.csv"
+
 
 def load_packages(filename):
     """
@@ -63,7 +71,7 @@ def main():
     distance_table = DistanceTable()
 
     # Load the CSV data
-    distance_table.load_distances("Distance_File.csv")
+    distance_table.load_distances("DISTANCE_FILE")
 
     print(package_table)
 

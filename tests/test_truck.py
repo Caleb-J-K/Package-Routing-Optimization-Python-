@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime
 
-from truck import Truck
+from src.truck import Truck
 
 
 class TestTruck(unittest.TestCase):
