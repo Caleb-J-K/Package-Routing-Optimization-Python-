@@ -65,5 +65,7 @@ def main():
     # Load the CSV data
     distance_table.load_distances("Distance_File.csv")
 
+    print(package_table)
+
 if __name__ == "__main__":
     main()
