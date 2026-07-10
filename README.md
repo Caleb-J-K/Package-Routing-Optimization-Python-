@@ -40,23 +40,22 @@ Planned features:
 
 ## Project Structure
 
-C950 Project/
-│
-├── main.py
-│ Application entry point
-│
-├── distancetable.py
-│ Handles loading and retrieving location distances
-│
-├── Distance_File.csv
-│ Distance data between delivery locations
-│
-├── tests/
-│ Automated unit tests
-│
-│ └── test_distancetable.py
-│
-└── README.md
+C950 Project
+-main.py
+Application entry point
+|
+-distancetable.py
+Handles loading and retrieving location distances
+|
+-Distance_File.csv
+Distance data between delivery locations
+|
+- tests/
+Automated unit tests
+|
+-- test_distancetable.py
+|
+-README.md
 
 
 ## Distance Table Design
@@ -115,7 +114,6 @@ python -m unittest discover
 Example output:
 
 ......
-----------------------------------------------------------------------
 Ran 6 tests in 0.02s
 
 OK
