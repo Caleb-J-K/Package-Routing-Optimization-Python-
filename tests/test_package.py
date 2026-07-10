@@ -1,3 +1,7 @@
+"""
+Unit tests for the Package class.
+"""
+
 import unittest
 from src.package import Package
 
@@ -5,6 +9,9 @@ from src.package import Package
 class TestPackage(unittest.TestCase):
 
     def setUp(self):
+        """
+        Creates a Package instance used by each test.
+        """
         self.package = Package(
             1,
             "123 Main St",

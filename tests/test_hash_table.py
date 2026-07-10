@@ -1,10 +1,18 @@
+"""
+Unit tests for the HashTable class.
+"""
+
 import unittest
+
 from src.hash_table import HashTable
 
 
 class TestHashTable(unittest.TestCase):
 
     def setUp(self):
+        """
+        Creates an empty hash table used by each test.
+        """
         self.table = HashTable()
 
     def test_insert_and_search(self):
@@ -34,8 +42,7 @@ class TestHashTable(unittest.TestCase):
 
 
     def test_collision_handling(self):
-        # Default table size is 40
-        # 1 and 41 will hash to the same bucket
+        # Package IDs 1 and 41 both hash to bucket 1 when the default table size is 40, allowing collision handling to be verified.
 
         self.table.insert(1, "Package One")
         self.table.insert(41, "Package Forty One")
