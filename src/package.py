@@ -43,7 +43,7 @@ class Package:
         self.status: str = "At Hub"
         self.delivery_time: datetime | None = None
         self.departure_time: datetime | None = None
-        self.truck_id: int = None
+        self.truck_id: int | None = None
 
     # Formats the package information into a string for easy printing
     def __str__(self):

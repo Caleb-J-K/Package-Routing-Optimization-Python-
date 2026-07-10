@@ -34,7 +34,7 @@ class Truck:
         self.mileage: float = 0.0  # Total mileage for the truck
         self.departure_time: datetime | None = None  # Time when the truck departs for deliveries
         self.current_time: datetime | None = None  # Start time at 8:00 AM
-        self.current_location = self.HUB_ADDRESS  # Start at the hub address
+        self.current_location: str = self.HUB_ADDRESS  # Start at the hub address
 
 
     def load_package(self, package_id: int) -> None:
@@ -57,7 +57,7 @@ class Truck:
             raise ValueError("Package not found on the truck.")
         
 
-    def set_departure_time(self, departure_time):
+    def set_departure_time(self, departure_time: datetime) -> None:
         """
         Sets the departure time for the truck.
         """
