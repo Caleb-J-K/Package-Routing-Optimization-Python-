@@ -1,3 +1,7 @@
+"""
+Unit tests for the Truck class.
+"""
+
 import unittest
 from datetime import datetime
 
@@ -7,6 +11,9 @@ from src.truck import Truck
 class TestTruck(unittest.TestCase):
 
     def setUp(self):
+        """
+        Creates an empty truck used by each test.
+        """
         self.truck = Truck(1)
 
 
@@ -24,10 +31,23 @@ class TestTruck(unittest.TestCase):
             0.0
         )
 
+        self.assertIsNone(
+            self.truck.departure_time
+        )
+
+        self.assertIsNone(
+            self.truck.current_time
+        )
+
+        self.assertEqual(
+            self.truck.current_location,
+            Truck.HUB_ADDRESS
+        )
+
 
     def test_load_package(self):
 
-        self.truck.load_packages(1)
+        self.truck.load_package(1)
 
         self.assertIn(
             1,
@@ -36,7 +56,7 @@ class TestTruck(unittest.TestCase):
 
     def test_remove_package(self):
 
-        self.truck.load_packages(5)
+        self.truck.load_package(5)
 
         self.truck.remove_package(5)
 
@@ -44,16 +64,30 @@ class TestTruck(unittest.TestCase):
             5,
             self.truck.packages
     )
+        
+    def test_remove_package_raises_error_for_missing_package(self):
+        with self.assertRaises(ValueError) as context:
+            self.truck.remove_package(99)
+
+        self.assertIn(
+            "not found",
+            str(context.exception).lower()
+        )
 
 
     def test_truck_capacity(self):
 
-        for package_id in range(16):
-            self.truck.load_packages(package_id)
+        for package_id in range(Truck.CAPACITY):
+            self.truck.load_package(package_id)
 
 
-        with self.assertRaises(Exception):
-            self.truck.load_packages(17)
+        with self.assertRaises(ValueError) as context:
+            self.truck.load_package(17)
+
+        self.assertIn(
+            "capacity",
+            str(context.exception).lower()
+        )
 
 
     def test_departure_time(self):

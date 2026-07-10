@@ -1,43 +1,52 @@
 """
-The DistanceTable class loads the distance table from a csv file
-and provides fast distance lookups between addresses.
+Provides the DistanceTable class used to load and retrieve delivery distances.
+
+The distance data is stored as a lower triangular matrix, where each address
+has a corresponding index used to efficiently retrieve the distance between
+two locations.
 """
 
 import csv
+from pathlib import Path
 
 
 class DistanceTable:
     """
-    Stores all delivery addresses and the distances between them.
+    Stores delivery addresses and the distances between locations.
+
+    The distance file contains a list of addresses and a lower triangular
+    distance matrix. Addresses are stored separately so that lookups can
+    convert addresses into matrix indexes.
     """
     
-    #stores every address in a list for easy access, in the order it appears in the Distance_File.csv
-    def __init__(self):
-        #Stores the list of addresses from the CSV file.
-        self.addresses = []
+    # Initializes an empty distance table.
+    def __init__(self) -> None: 
+        self.addresses: list[str] = [] # Stores addresses in the order they appear in the distance file.
+        self.distance_table: list[list[str]] = [] # Stores the lower triangular distance matrix as a list of lists.
 
-        #Stores the distance values between locations.
-        self.distance_table = []
 
-    def load_distances(self, filename):
+    def load_distances(self, filename: str | Path) -> None:
         """
-        Reads the distance table from a CSV file and 
-        loads the addresses and distances into memory.
+        Loads address and distance data from a CSV file.
         """
+
+        # Clears any existing data to prevent duplicate entries if this method is called more than once.
+        self.addresses.clear()
+        self.distance_table.clear()
 
         with open(filename, 'r', newline='') as file:
+
             reader = csv.reader(file)
             rows = list(reader)
 
+            # The first row contains the addresses, the first two columns are not addresses, so we skip them.
             self.addresses = [
                 address.strip()
                 for address in rows[0][2:]  # Skip the first two columns
             ]
 
-            rows = rows[1:]  # Skip the first row / address list
-
-            #Process each row of distance data.
-            for row in rows:
+            # The remaining rows after the first 2 contain the distance data.
+            for row in rows[1:]:  # Skip the first row which contains addresses
                 cleaned_row = [
                     value.strip()
                     for value in row[2:]
@@ -46,7 +55,11 @@ class DistanceTable:
                 self.distance_table.append(cleaned_row)
 
 
-    def get_distance(self, address1, address2):
+    def get_distance(
+            self, 
+            address1: str, 
+            address2: str
+            ) -> float:
         """
         Returns the distance between two addresses.
         """

@@ -1,41 +1,56 @@
 """
-Defines the Package class used throughout the routing program.
+Defines the Package class used throughout the WGUPS routing application.
 
-Each Package object contains information about a specific package, 
-including its ID, address, delivery deadline, weight, and any special notes. 
-The class also tracks the package's delivery status and times.
+Each Package object represents a delivery item and stores its identifying
+information, destination details, delivery requirements, and current status.
 """
+
+
+from datetime import datetime
+
+
 class Package:
     """
-    Represents a package to be delivered.
-    Stores package information from the package csv file and tracks delivery status and times.
+    Represents a package that must be delivered.
+
+    Package objects are created from package CSV data and are stored in the
+    package hash table using their package ID as the lookup key.
     """
     
-    #constructor for the package class
-    def __init__(self, package_id: int, address: str, city: str, state: str, zip_code: str, deadline: str, weight: str, special_notes: str):
+    def __init__(
+        self, 
+        package_id: int, 
+        address: str, 
+        city: str, 
+        state: str, 
+        zip_code: str, 
+        deadline: str, 
+        weight: str, 
+        special_notes: str
+    ) -> None:
         
-        #Basic package information
-        self.package_id = package_id
-        self.address = address
-        self.city = city
-        self.state = state
-        self.zip_code = zip_code
-        self.deadline = deadline
-        self.weight = weight
-        self.special_notes = special_notes
+        # Package and delivery information
+        self.package_id: int= package_id
+        self.address: str = address
+        self.city: str = city
+        self.state: str = state
+        self.zip_code: str = zip_code
+        self.deadline: str = deadline
+        self.weight: str = weight
+        self.special_notes: str = special_notes
         
-        #Delivery information
-        self.status = "At Hub"
-        self.delivery_time = None
-        self.departure_time = None
-        self.truck_id = None
+        # Delivery tracking information
+        self.status: str = "At Hub"
+        self.delivery_time: datetime | None = None
+        self.departure_time: datetime | None = None
+        self.truck_id: int = None
 
-    #formats the package information into a string for easy printing
+    # Formats the package information into a string for easy printing
     def __str__(self):
         return (
-    f"Package {self.package_id} | "
-    f"{self.address}, {self.city}, {self.state}, {self.zip_code} | "
-    f"Deadline: {self.deadline} | "
-    f"Weight: {self.weight} | "
-    f"Status: {self.status}"
-    )
+            f"Package {self.package_id} | "
+            f"{self.address}, {self.city}, {self.state}, {self.zip_code} | "
+            f"Deadline: {self.deadline} | "
+            f"Weight: {self.weight} | "
+            f"Status: {self.status}"
+         )
