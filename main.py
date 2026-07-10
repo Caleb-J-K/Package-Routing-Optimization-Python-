@@ -7,6 +7,7 @@ import csv
 
 from hashtable import HashTable
 from package import Package
+from distancetable import DistanceTable
 
 PACKAGE_FILE = "Package_File.csv"
 
@@ -57,11 +58,12 @@ def main():
     
     # Load all package data into the hash table
     package_table = load_packages(PACKAGE_FILE)
-    
-    # Test the hash table
-    print(package_table.search(1))
-    print(package_table.search(15))
-    print(package_table.search(40))
+
+    # Create a DistanceTable object
+    distance_table = DistanceTable()
+
+    # Load the CSV data
+    distance_table.load_distances("Distance_File.csv")
 
 if __name__ == "__main__":
     main()
