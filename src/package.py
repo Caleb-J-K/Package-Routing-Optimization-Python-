@@ -54,3 +54,18 @@ class Package:
             f"Weight: {self.weight} | "
             f"Status: {self.status}"
          )
+    
+    def get_status_at_time(self, check_time: datetime) -> str:
+        """
+        Determines package status at a specific time.
+        """
+
+        if self.delivery_time is not None and check_time >= self.delivery_time:
+            return "Delivered"
+
+
+        if self.departure_time is not None and check_time >= self.departure_time:
+            return "En Route"
+
+
+        return "At Hub"

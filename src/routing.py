@@ -8,6 +8,7 @@ location for each truck.
 from src.truck import Truck
 from src.hash_table import HashTable
 from src.distance_table import DistanceTable
+from datetime import datetime
 
 
 class Routing:
@@ -77,9 +78,7 @@ class Routing:
 
         for package_id in truck.packages:
 
-            package = self.package_table.search(
-                package_id
-            )
+            package = self.package_table.search(package_id)
 
             distance = self.distance_table.get_distance(
                 truck.current_location,
@@ -108,7 +107,6 @@ class Routing:
             package_id
         )
 
-
         distance = self.distance_table.get_distance(
             truck.current_location,
             package.address
@@ -120,12 +118,10 @@ class Routing:
 
         truck.current_location = package.address
 
-
         package.status = "Delivered"
 
         package.delivery_time = truck.current_time
 
         package.truck_id = truck.truck_id
-
 
         truck.remove_package(package_id)
