@@ -9,26 +9,38 @@ from src.hash_table import HashTable
 from src.distance_table import DistanceTable
 from src.package import Package
 from src.truck import Truck
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+DISTANCE_FILE = DATA_DIR / "distance_file.csv"
 
 
 class TestDeliveryService(unittest.TestCase):
 
     def setUp(self):
         """
-        Creates a DeliveryService with test package data.
+        Creates a DeliveryService with package data for testing.
 
-        A small mock package table is used instead of loading the
-        full CSV because these tests focus on package assignment logic.
+        A real DistanceTable is used so routing can calculate travel
+        distances during simulation.
         """
+
+        self.distance_table = DistanceTable()
+        self.distance_table.load_distances(DISTANCE_FILE)
 
         self.package_table = HashTable()
 
-        # Create mock packages 1-40.
+        # Create mock packages using real delivery addresses.
         for package_id in range(1, 41):
+
+            address = self.distance_table.addresses[
+                package_id % len(self.distance_table.addresses)
+            ]
 
             package = Package(
                 package_id,
-                "Test Address",
+                address,
                 "Salt Lake City",
                 "UT",
                 "84107",
@@ -41,8 +53,6 @@ class TestDeliveryService(unittest.TestCase):
                 package_id,
                 package
             )
-
-        self.distance_table = DistanceTable()
 
         self.delivery_service = DeliveryService(
             self.package_table,
@@ -195,6 +205,66 @@ class TestDeliveryService(unittest.TestCase):
                 Truck.CAPACITY
             )
 
+    def test_dispatch_trucks(self):
+        """
+        Verify dispatching trucks delivers all assigned packages.
+        """
+
+        self.delivery_service.assign_packages()
+
+        self.delivery_service.dispatch_trucks()
+
+        for truck in self.delivery_service.trucks:
+            self.assertEqual(
+                len(truck.packages),
+                0
+            )
+
+    def test_simulate(self):
+        """
+        Verify the complete delivery simulation executes successfully.
+        """
+
+        self.delivery_service.simulate()
+
+        for truck in self.delivery_service.trucks:
+            self.assertEqual(
+                len(truck.packages),
+                0
+            )
+
+    def test_total_mileage(self):
+        """
+        Verify total mileage is greater than zero after deliveries.
+        """
+
+        self.delivery_service.simulate()
+
+        self.assertGreater(
+            self.delivery_service.total_mileage(),
+            0
+        )
+
+    def test_package_status_updated(self):
+        for truck in self.delivery_service.trucks:
+            print("Truck", truck.truck_id, truck.packages)
+        """
+        Verify dispatched packages are marked as delivered.
+        """
+
+        self.delivery_service.simulate()
+
+        package = self.package_table.search(1)
+
+        self.assertEqual(
+            package.status,
+            "Delivered"
+        )
+
+        self.assertIsNotNone(
+            package.delivery_time
+        )
+
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main() 

@@ -21,7 +21,7 @@ class Truck:
     CAPACITY = 16  # max # of packages
     HUB_ADDRESS = (
         "Western Governors University\n"
-        "4001 South 700 East,\n"
+        "4001 South 700 East, \n"
         "Salt Lake City, UT 84107"
     )
 

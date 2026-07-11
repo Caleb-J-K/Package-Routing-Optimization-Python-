@@ -10,6 +10,9 @@ from datetime import datetime
 from src.truck import Truck
 from src.distance_table import DistanceTable
 from src.hash_table import HashTable
+from src.routing import Routing
+from src.driver import Driver
+
 
 TRUCK_TWO_REQUIRED_PACKAGES = [
     3,
@@ -45,15 +48,7 @@ class DeliveryService:
         
         self.package_table = package_table
         self.distance_table = distance_table
-
-        # The Simulation begins at 8:00am.
-        self.current_time: datetime = datetime(
-            2026,
-            7,
-            10,
-            8,
-            0
-        )
+        self.current_time = datetime(2026, 7, 10, 8, 0)
 
         # Initialize three trucks for the delivery service.
         self.trucks = [
@@ -61,6 +56,18 @@ class DeliveryService:
             Truck(2),
             Truck(3)
         ]
+
+        # WGUPS has three trucks but only two drivers.
+        self.drivers = [
+            Driver(1),
+            Driver(2)
+        ]
+
+        # Handles route planning and deliveries.
+        self.routing = Routing(
+            self.package_table,
+            self.distance_table
+        )
 
     def assign_packages(self) -> None:
         """
@@ -145,3 +152,46 @@ class DeliveryService:
                 truck_index += 1
 
             self.trucks[truck_index].load_package(package_id)
+
+    def dispatch_trucks(self) -> None:
+        """
+        Dispatches each truck to complete its assigned deliveries.
+        """
+
+        for truck in self.trucks:
+
+            truck.set_departure_time(
+                self.current_time
+            )
+
+            self.routing.deliver_truck(truck)
+
+    def simulate(self) -> None:
+        """
+        Runs the complete delivery simulation.
+
+        The current implementation:
+            1. Assigns packages.
+            2. Dispatches all trucks.
+
+        Time-based delivery events will be incorporated as the
+        simulation is expanded.
+        """
+
+        self.assign_packages()
+
+        print("After assignment:")
+        for truck in self.trucks:
+            print(f"Truck {truck.truck_id}: {truck.packages}")
+
+        self.dispatch_trucks()
+
+    def total_mileage(self) -> float:
+        """
+        Returns the total mileage driven by all trucks.
+        """
+
+        return sum(
+            truck.mileage
+            for truck in self.trucks
+        )
