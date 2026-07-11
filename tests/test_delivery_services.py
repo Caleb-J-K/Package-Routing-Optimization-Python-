@@ -246,8 +246,6 @@ class TestDeliveryService(unittest.TestCase):
         )
 
     def test_package_status_updated(self):
-        for truck in self.delivery_service.trucks:
-            print("Truck", truck.truck_id, truck.packages)
         """
         Verify dispatched packages are marked as delivered.
         """

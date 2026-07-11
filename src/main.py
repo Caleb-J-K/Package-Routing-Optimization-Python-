@@ -24,7 +24,7 @@ PACKAGE_FILE = DATA_DIR / "package_file.csv"
 DISTANCE_FILE = DATA_DIR / "distance_file.csv"
 
 
-def load_packages(filename: str | Path) -> HashTable:
+def load_packages(filename: str | Path, distance_table: DistanceTable) -> HashTable:
     """
     Reads package data from a CSV file, 
     creates Package objects, 
@@ -42,7 +42,7 @@ def load_packages(filename: str | Path) -> HashTable:
 
         for row in reader:
             package_id = int(row[0])
-            address = row[1]
+            address = distance_table.find_full_address(row[1])
             city = row[2]
             state = row[3]
             zip_code = row[4]
@@ -73,12 +73,21 @@ def initialize_system():
     Loads all required data and creates the delivery system.
     """
 
-    package_table = load_packages(PACKAGE_FILE)
-
     distance_table = DistanceTable()
     distance_table.load_distances(DISTANCE_FILE)
 
-    return package_table, distance_table
+    package_table = load_packages(PACKAGE_FILE, distance_table)
+
+    package = package_table.search(1)
+
+    delivery_service = DeliveryService(
+        package_table,
+        distance_table
+    )
+
+    return package_table, delivery_service
+
+    
 
 # def main():
 
@@ -246,9 +255,13 @@ def run_application():
 
         if choice == "1":
 
-            delivery_service.assign_packages()
+            if simulation_complete:
+                print("\nSimulation has already been completed.")
+                continue
 
             delivery_service.simulate()
+
+            simulation_complete = True
 
             print(
                 "\nSimulation complete."

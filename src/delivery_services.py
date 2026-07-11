@@ -180,10 +180,6 @@ class DeliveryService:
 
         self.assign_packages()
 
-        print("After assignment:")
-        for truck in self.trucks:
-            print(f"Truck {truck.truck_id}: {truck.packages}")
-
         self.dispatch_trucks()
 
     def total_mileage(self) -> float:

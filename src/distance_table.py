@@ -86,3 +86,46 @@ class DistanceTable:
 
         #convert the distance to a float and return it.
         return float(distance)
+    
+    def find_full_address(self, street_address: str) -> str:
+        """
+        Finds the distance table address matching a package address.
+
+        Handles minor formatting differences between CSV files.
+        """
+
+        clean_package_address = (
+            street_address
+            .strip()
+            .lower()
+        )
+
+        for address in self.addresses:
+
+            clean_distance_address = (
+                address
+                .strip()
+                .lower()
+            )
+
+            # Direct match
+            if clean_package_address in clean_distance_address:
+                return address
+
+            # Handle common abbreviation differences
+            normalized_package = (
+                clean_package_address
+                .replace("station", "sta")
+            )
+
+            normalized_distance = (
+                clean_distance_address
+                .replace("station", "sta")
+            )
+
+            if normalized_package in normalized_distance:
+                return address
+
+        raise ValueError(
+            f"Address not found in distance table: {street_address}"
+        )
