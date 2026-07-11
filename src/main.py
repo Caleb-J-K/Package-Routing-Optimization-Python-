@@ -51,7 +51,7 @@ def load_packages(filename: str | Path) -> HashTable:
             # Create a Package object using CSV data
             package = Package(
                 package_id, 
-                address, 
+                address,
                 city, 
                 state, 
                 zip_code, 
