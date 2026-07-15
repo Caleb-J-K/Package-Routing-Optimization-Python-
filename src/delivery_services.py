@@ -30,6 +30,7 @@ GROUPED_PACKAGES = [
     20
 ]
 
+
 class DeliveryService:
 
     def __init__(
@@ -50,24 +51,24 @@ class DeliveryService:
             0
         )
 
-        # Available trucks in the WGUPS fleet.
+        # WGUPS has three trucks.
         self.trucks = [
             Truck(1),
             Truck(2),
             Truck(3)
         ]
 
-        # Only two drivers are available.
+        # WGUPS only has two drivers.
         self.drivers = [
             Driver(1),
             Driver(2)
         ]
 
-        # Handles package routing and delivery.
         self.routing = Routing(
             self.package_table,
             self.distance_table
         )
+
 
     def assign_packages(self) -> None:
 
@@ -77,21 +78,26 @@ class DeliveryService:
 
         self.assign_remaining_packages()
 
+
     def assign_required_packages(self) -> None:
 
-        # Truck 2 has packages with specific requirements.
-        truck_2 = self.trucks[1]
-
+        # Truck 2 must carry these packages.
         for package_id in TRUCK_TWO_REQUIRED_PACKAGES:
-            truck_2.load_package(package_id)
+
+            self.trucks[1].load_package(
+                package_id
+            )
+
 
     def assign_package_groups(self) -> None:
 
-        # These packages must travel together.
-        truck_1 = self.trucks[0]
-
+        # These packages must remain together.
         for package_id in GROUPED_PACKAGES:
-            truck_1.load_package(package_id)
+
+            self.trucks[0].load_package(
+                package_id
+            )
+
 
     def assign_remaining_packages(self) -> None:
 
@@ -99,91 +105,88 @@ class DeliveryService:
 
         # Track packages already assigned.
         for truck in self.trucks:
-            assigned_packages.update(truck.packages)
+            assigned_packages.update(
+                truck.packages
+            )
+
 
         truck_index = 0
 
         for package_id in range(1, 41):
 
-            # Skip packages already assigned.
             if package_id in assigned_packages:
                 continue
 
-            # Delayed packages are loaded after arrival.
+            # Delayed packages arrive later.
             if package_id in DELAYED_PACKAGES:
                 continue
 
-            # Move to the next truck when capacity is reached.
+
             while (
                 len(self.trucks[truck_index].packages)
                 >= Truck.CAPACITY
             ):
                 truck_index += 1
 
+
             self.trucks[truck_index].load_package(
                 package_id
             )
+
 
     def load_delayed_packages(self) -> None:
 
-        # Delayed packages arrive at the hub at 9:05 AM.
-        arrival_time = datetime(
-            2026,
-            7,
-            10,
-            9,
-            5
-        )
-
-        if self.current_time < arrival_time:
-            return
-
-        truck_index = 0
-
+        # Delayed packages arrive at 9:05 AM.
         for package_id in DELAYED_PACKAGES:
 
-            # Avoid loading duplicate packages.
-            already_loaded = any(
-                package_id in truck.packages
-                for truck in self.trucks
-            )
-
-            if already_loaded:
-                continue
-
-            while (
-                len(self.trucks[truck_index].packages)
-                >= Truck.CAPACITY
-            ):
-                truck_index += 1
-
-            self.trucks[truck_index].load_package(
+            self.trucks[2].load_package(
                 package_id
             )
 
+
     def dispatch_trucks(self) -> None:
 
-        # Dispatch trucks currently assigned packages.
+        # Only two trucks can operate because there are two drivers.
         for truck in self.trucks:
 
+            # Do not dispatch trucks with no packages.
             if not truck.packages:
                 continue
+
+            available_driver = self.get_available_driver()
+
+            if available_driver is None:
+                break
+
+            available_driver.assign_truck(truck)
 
             truck.set_departure_time(
                 self.current_time
             )
 
-            self.routing.deliver_truck(
-                truck
-            )
+            self.routing.deliver_truck(truck)
+
+            available_driver.release_truck()
+
+    def get_available_driver(self):
+
+        for driver in self.drivers:
+            if driver.available:
+                return driver
+
+        return None
 
     def simulate(self) -> None:
 
+        # Assign morning packages.
         self.assign_packages()
 
+
+        # Dispatch first two trucks.
         self.dispatch_trucks()
 
-        # Advance time when delayed packages arrive.
+
+        # Advance time to delayed package arrival.
         self.current_time = datetime(
             2026,
             7,
@@ -192,9 +195,13 @@ class DeliveryService:
             5
         )
 
+
         self.load_delayed_packages()
 
+
+        # Dispatch remaining deliveries.
         self.dispatch_trucks()
+
 
     def total_mileage(self) -> float:
 

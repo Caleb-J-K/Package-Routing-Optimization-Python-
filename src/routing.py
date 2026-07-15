@@ -29,7 +29,16 @@ class Routing:
 
             # No packages are currently available.
             if next_package_id is None:
-                break
+
+                truck.current_time = datetime(
+                    2026,
+                    7,
+                    10,
+                    10,
+                    20
+                )
+
+                continue
 
             self.deliver_package(
                 truck,
@@ -38,14 +47,14 @@ class Routing:
 
 
         # Return truck to hub after deliveries.
-        distance = self.distance_table.get_distance(
-            truck.current_location,
-            Truck.HUB_ADDRESS
-        )
+        # distance = self.distance_table.get_distance(
+        #     truck.current_location,
+        #     Truck.HUB_ADDRESS
+        # )
 
-        truck.travel(distance)
+        # truck.travel(distance)
 
-        truck.current_location = Truck.HUB_ADDRESS
+        # truck.current_location = Truck.HUB_ADDRESS
 
 
 

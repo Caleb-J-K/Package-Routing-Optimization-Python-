@@ -4,11 +4,10 @@ import csv
 from pathlib import Path
 from datetime import datetime
 
-from src.delivery_services import DeliveryService
+from src.delivery_services import DeliveryService, DELAYED_PACKAGES
 from src.distance_table import DistanceTable
 from src.hash_table import HashTable
 from src.package import Package
-from src.delivery_services import DELAYED_PACKAGES
 
 
 # Project file locations.
@@ -51,7 +50,7 @@ def load_packages(
             arrival_time = None
 
             # Delayed packages arrive at the hub at 9:05 AM.
-            if package_id in [DELAYED_PACKAGES]:
+            if package_id in DELAYED_PACKAGES:
 
                 arrival_time = datetime(
                     2026,
@@ -171,7 +170,6 @@ def lookup_package(package_table):
 
         return
 
-
     status = package.get_status_at_time(
         check_time
     )
@@ -237,16 +235,79 @@ Status:
 
 def display_packages(package_table):
 
-    # Display all packages currently in the system.
+    try:
+
+        time_input = input(
+            "\nEnter time (HH:MM AM/PM): "
+        )
+
+        check_time = datetime.strptime(
+            time_input,
+            "%I:%M %p"
+        ).replace(
+            year=2026,
+            month=7,
+            day=10
+        )
+
+    except ValueError:
+
+        print(
+            "Invalid input."
+        )
+
+        return
+
+
+    print(
+        f"\nPackage Status at {check_time.strftime('%I:%M %p')}\n"
+    )
+
+    # Display all packages with their status at the selected time.
     for package_id in range(1, 41):
 
         package = package_table.search(
             package_id
         )
 
-        if package:
+        if package is None:
+            continue
 
-            print(package)
+
+        status = package.get_status_at_time(
+            check_time
+        )
+
+
+        print(
+            f"""
+Package {package.package_id} | 
+{package.address}, {package.city}, {package.state}, {package.zip_code} |
+Deadline: {package.deadline} |
+Weight: {package.weight} |
+Status: {status}"""
+        )
+
+        # Show truck assignment after the package has left the hub.
+        if (
+            package.departure_time is not None
+            and check_time >= package.departure_time
+        ):
+
+            print(
+                f"Truck: {package.truck_id}"
+            )
+
+        # Show delivery time only after delivery has occurred.
+        if (
+            status == "Delivered"
+            and package.delivery_time is not None
+        ):
+
+            print(
+                f"Delivery Time: "
+                f"{package.delivery_time.strftime('%I:%M %p')}"
+            )
 
 
 
