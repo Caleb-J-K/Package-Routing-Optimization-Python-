@@ -1,36 +1,25 @@
-"""
-Provides the DistanceTable class used to load and retrieve delivery distances.
-
-The distance data is stored as a lower triangular matrix, where each address
-has a corresponding index used to efficiently retrieve the distance between
-two locations.
-"""
-
 import csv
 from pathlib import Path
 
 
 class DistanceTable:
-    """
-    Stores delivery addresses and the distances between locations.
-
-    The distance file contains a list of addresses and a lower triangular
-    distance matrix. Addresses are stored separately so that lookups can
-    convert addresses into matrix indexes.
-    """
     
-    # Initializes an empty distance table.
+    # Initializes an empty distance table that stores addresses and their corresponding distance values.
     def __init__(self) -> None: 
-        self.addresses: list[str] = [] # Stores addresses in the order they appear in the distance file.
-        self.distance_table: list[list[str]] = [] # Stores the lower triangular distance matrix as a list of lists.
+        self.addresses: list[str] = []
+        self.distance_table: list[list[str]] = []
 
+    def normalize_address(self, address: str) -> str:
+        # Standardizes addresses so small formatting differences do not break lookups.
+        return (
+            " ".join(address.split())
+            .lower()
+            .replace("station", "sta")
+        )
 
     def load_distances(self, filename: str | Path) -> None:
-        """
-        Loads address and distance data from a CSV file.
-        """
 
-        # Clears any existing data to prevent duplicate entries if this method is called more than once.
+        # Clears any existing data in case the table is loaded again.
         self.addresses.clear()
         self.distance_table.clear()
 
@@ -39,91 +28,68 @@ class DistanceTable:
             reader = csv.reader(file)
             rows = list(reader)
 
-            # The first row contains the addresses, the first two columns are not addresses, so we skip them.
+            # Store addresses from first row of the CSV.
             self.addresses = [
-                address.strip()
-                for address in rows[0][2:]  # Skip the first two columns
+                " ".join(address.split())
+                for address in rows[0][2:]
             ]
 
-            # The remaining rows after the first 2 contain the distance data.
-            for row in rows[1:]:  # Skip the first row which contains addresses
+            # Stores the lower triangular distance matrix.
+            for row in rows[1:]:
                 cleaned_row = [
-                    value.strip()
-                    for value in row[2:]
-                ]
+                value.strip()
+                for value in row[2:]
+            ]
 
                 self.distance_table.append(cleaned_row)
 
 
     def get_distance(
-            self, 
-            address1: str, 
+            self,
+            address1: str,
             address2: str
-            ) -> float:
-        """
-        Returns the distance between two addresses.
-        """
+        ) -> float:
 
-        #distance from an address to itself is always 0.0
-        if address1 == address2:
-            return 0.0
+        clean_address1 = self.normalize_address(address1)
+        clean_address2 = self.normalize_address(address2)
 
-        try:
-            #find the position of each address in the list.
-            index1 = self.addresses.index(address1)
-            index2 = self.addresses.index(address2)
-        except ValueError:
+        index1 = None
+        index2 = None
+
+        # Find the row indices for both addresses.
+        for i, address in enumerate(self.addresses):
+
+            clean_address = self.normalize_address(address)
+
+            if clean_address == clean_address1:
+                index1 = i
+
+            if clean_address == clean_address2:
+                index2 = i
+
+        if index1 is None or index2 is None:
             raise ValueError(
                 f"One or both addresses not found: {address1}, {address2}"
             )
 
-        #The distance table is a lower triangular matrix, 
-        # so we need to check which index is larger.
-        if index2 < index1:
-            distance = self.distance_table[index1][index2]
-        else:
+        distance = self.distance_table[index1][index2]
+
+        # The CSV only stores half of the distance matrix, if the value is blank, use the reverse direction.
+        if distance == "":
             distance = self.distance_table[index2][index1]
 
-        #convert the distance to a float and return it.
         return float(distance)
     
     def find_full_address(self, street_address: str) -> str:
-        """
-        Finds the distance table address matching a package address.
 
-        Handles minor formatting differences between CSV files.
-        """
-
-        clean_package_address = (
-            street_address
-            .strip()
-            .lower()
-        )
-
+        clean_package_address = self.normalize_address(street_address)
+        
+        # Match the package CSV address to the full address from the distance table.
         for address in self.addresses:
 
-            clean_distance_address = (
-                address
-                .strip()
-                .lower()
-            )
+            clean_distance_address = self.normalize_address(address)
 
-            # Direct match
             if clean_package_address in clean_distance_address:
-                return address
-
-            # Handle common abbreviation differences
-            normalized_package = (
-                clean_package_address
-                .replace("station", "sta")
-            )
-
-            normalized_distance = (
-                clean_distance_address
-                .replace("station", "sta")
-            )
-
-            if normalized_package in normalized_distance:
                 return address
 
         raise ValueError(
