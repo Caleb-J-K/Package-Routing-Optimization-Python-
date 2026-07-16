@@ -2,69 +2,115 @@
 
 ## Overview
 
-The WGUPS Delivery Routing System is a Python application that simulates package delivery operations for the Western Governors University Parcel Service.
+The WGUPS Delivery Routing System is a Python application that simulates package delivery operations for the Western Governors University Parcel Service (WGUPS).
 
-The program uses object-oriented design principles to model delivery components including packages, trucks, locations, and routing logic. The goal of the system is to efficiently deliver packages while tracking truck mileage and delivery status.
+The application loads package and distance data from CSV files, assigns packages to delivery trucks while respecting delivery constraints, calculates delivery routes using a nearest-neighbor routing algorithm, and tracks package and truck status throughout the delivery day. A command-line interface allows users to run the delivery simulation, look up individual packages, view the status of all packages at a specified time, and inspect truck information.
 
-This project was developed as part of the WGU Computer Science curriculum and expanded with professional software development practices including automated testing and modular design.
+This project was developed as part of the Western Governors University Computer Science curriculum and follows object-oriented design principles, modular architecture, and automated testing practices.
 
+
+---
 
 ## Features
 
-Current features:
+- Loads package and distance data from CSV files
+- Custom hash table implementation for efficient package storage and retrieval
+- Nearest-neighbor routing algorithm for package delivery
+- Simulates deliveries using three trucks and two drivers
+- Tracks truck mileage throughout the delivery day
+- Calculates travel time using an average speed of 18 MPH
+- Supports delayed package arrivals
+- Handles package address corrections during the simulation
+- Tracks package status as:
+  - Delayed
+  - At Hub
+  - En Route
+  - Delivered
+- Look up any package at a user-specified time
+- View all package statuses at a user-specified time
+- View truck status and assigned packages at a user-specified time
+- Automated unit testing for core components
 
-- Load delivery location data from CSV files
-- Store and retrieve distances between delivery locations
-- Handle the provided distance matrix format
-- Perform distance lookups between any two locations
-- Automated unit tests for core functionality
 
-Planned features:
-
-- Package management system
-- Truck simulation
-- Package delivery status tracking
-- Route optimization
-- Delivery time calculation
-- User interface for viewing delivery progress
-
+---
 
 ## Technologies Used
 
 - Python 3
-- Object-Oriented Programming
-- CSV data processing
-- Unit Testing (`unittest`)
+- Object-Oriented Programming (OOP)
+- CSV Data Processing
+- pathlib
+- unittest
 - Git / GitHub
 
 
 ## Distance Table Design
 
-The provided distance file stores distances in a lower-triangular matrix format.
+Package deliveries are performed using a nearest-neighbor routing algorithm.
+
+Each truck repeatedly selects the closest undelivered package from its current location until all assigned packages have been delivered. While this heuristic does not always produce the mathematically optimal route, it provides an efficient solution that satisfies the project requirements while maintaining a total mileage below the required limit.
+
+
+---
+
+## Delivery Constraints
+
+The simulation accounts for all delivery constraints provided in the project requirements, including:
+
+- Delayed packages that arrive at the hub at **9:05 AM**
+- Package 9 address correction available after **10:20 AM**
+- Packages that must be delivered together
+- Packages that must be assigned to a specific truck
+- Three delivery trucks with only two available drivers
+- Truck capacity limit of 16 packages
+
+
+---
+
+## Time Simulation
+
+Truck travel time is calculated using the required average speed of **18 miles per hour**.
+
+Travel time is determined from the distance traveled:
+
+```
+Travel Time = Distance ÷ Speed
+```
+
+Package and truck statuses are calculated dynamically based on user-selected times, allowing the application to accurately report historical delivery information throughout the day.
+
+
+---
+
+## Distance Table Design
+
+The provided distance file stores distances in a lower-triangular matrix.
 
 Example:
 
-  A   B   C
-A 0
-B 7.2 0
-C 3.8 7.1 0
+```
+      A     B     C
+A    0
+B   7.2    0
+C   3.8   7.1    0
+```
 
+Since only half of the matrix is provided, the application automatically retrieves distances regardless of direction.
 
-Because only half of the distance matrix is stored, the application includes logic to retrieve distances regardless of the requested direction.
+For example:
 
-Example:
-
-
+```
 Location A → Location B
-
+```
 
 and
 
-
+```
 Location B → Location A
-
+```
 
 both return the same distance.
+
 
 ---
 
@@ -72,44 +118,68 @@ both return the same distance.
 
 Clone the repository:
 
-bash
+```bash
 git clone <repository-url>
+```
 
-Navigate into the project directory:
+Navigate to the project directory:
 
+```bash
 cd "C950 Project"
+```
 
 Run the application:
 
-python main.py
+```bash
+python -m src.main
+```
+
+
+---
 
 ## Running Tests
 
-The project uses Python's built-in unittest framework.
+The project uses Python's built-in **unittest** framework.
 
-To run all tests:
+Run all tests:
 
+```bash
 python -m unittest discover
+```
 
 Example output:
 
+```
 ......
 Ran 6 tests in 0.02s
 
 OK
+```
+
+(The number of tests may vary as additional tests are added.)
+
+
+---
 
 ## Development Practices
 
-This project follows several software engineering practices:
+This project emphasizes several software engineering principles:
 
-Separation of responsibilities between classes
-Automated testing for core components
-Meaningful comments and documentation
-Incremental development using version control
-Modular project structure
-Future Improvements
+- Object-oriented design
+- Separation of responsibilities between classes
+- Modular architecture
+- Custom hash table implementation
+- Automated unit testing
+- Type hints
+- Meaningful comments and documentation
+- Incremental development using Git
 
-## Potential improvements include:
+
+---
+
+## Future Improvements
+
+Potential future enhancements include:
 
 Implementing route optimization algorithms
 Adding package tracking history

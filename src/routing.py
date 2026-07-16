@@ -54,14 +54,14 @@ class Routing:
             )
 
         # Return truck to hub after deliveries.
-        # distance = self.distance_table.get_distance(
-        #     truck.current_location,
-        #     Truck.HUB_ADDRESS
-        # )
+        distance = self.distance_table.get_distance(
+            truck.current_location,
+            Truck.HUB_ADDRESS
+        )
 
-        # truck.travel(distance)
+        truck.travel(distance)
 
-        # truck.current_location = Truck.HUB_ADDRESS
+        truck.current_location = Truck.HUB_ADDRESS
 
     def find_next_package(
         self,

@@ -391,6 +391,10 @@ def display_trucks(
             f"{truck.departure_time.strftime('%I:%M %p') if truck.departure_time else 'N/A'}"
         )
 
+        print(
+            f"Mileage: {truck.mileage:.2f} miles"
+        )
+
         if (
         truck.departure_time is None
         or check_time < truck.departure_time

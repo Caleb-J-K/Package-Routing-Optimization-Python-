@@ -15,22 +15,17 @@ DISTANCE_FILE = DATA_DIR / "distance_file.csv"
 
 
 class TestRouting(unittest.TestCase):
-    """
-    Tests the routing logic used to deliver packages.
-    """
 
     def setUp(self):
-        """
-        Creates a routing system using the real distance table
-        and a small package table.
-        """
 
         self.distance_table = DistanceTable()
-        self.distance_table.load_distances(DISTANCE_FILE)
+
+        self.distance_table.load_distances(
+            DISTANCE_FILE
+        )
 
         self.package_table = HashTable()
 
-        # Use real addresses from the distance table.
         address1 = self.distance_table.addresses[1]
         address2 = self.distance_table.addresses[2]
 
@@ -56,28 +51,44 @@ class TestRouting(unittest.TestCase):
             ""
         )
 
-        self.package_table.insert(1, package1)
-        self.package_table.insert(2, package2)
+        self.package_table.insert(
+            1,
+            package1
+        )
+
+        self.package_table.insert(
+            2,
+            package2
+        )
 
         self.routing = Routing(
             self.package_table,
             self.distance_table
         )
 
-        self.truck = Truck(1)
-        self.truck.set_departure_time(
-            datetime(2026, 7, 10, 8, 0)
+        self.truck = Truck(
+            1
         )
 
-        self.truck.load_package(1)
-        self.truck.load_package(2)
+        self.truck.set_departure_time(
+            datetime(
+                2026,
+                7,
+                10,
+                8,
+                0
+            )
+        )
 
+        self.truck.load_package(
+            1
+        )
+
+        self.truck.load_package(
+            2
+        )
 
     def test_find_next_package(self):
-        """
-        Verify the routing algorithm returns one of the
-        packages currently on the truck.
-        """
 
         package_id = self.routing.find_next_package(
             self.truck
@@ -88,19 +99,16 @@ class TestRouting(unittest.TestCase):
             self.truck.packages
         )
 
-
     def test_deliver_package(self):
-        """
-        Verify delivering a package updates all
-        package and truck information.
-        """
 
         self.routing.deliver_package(
             self.truck,
             1
         )
 
-        package = self.package_table.search(1)
+        package = self.package_table.search(
+            1
+        )
 
         self.assertEqual(
             package.status,
@@ -121,12 +129,7 @@ class TestRouting(unittest.TestCase):
             0
         )
 
-
     def test_deliver_truck(self):
-        """
-        Verify all packages are delivered and
-        the truck returns to the hub.
-        """
 
         self.routing.deliver_truck(
             self.truck
@@ -146,6 +149,27 @@ class TestRouting(unittest.TestCase):
             self.truck.mileage,
             0
         )
+
+    def test_all_packages_receive_delivery_time(self):
+
+        self.routing.deliver_truck(
+            self.truck
+        )
+
+        for package_id in [1, 2]:
+
+            package = self.package_table.search(
+                package_id
+            )
+
+            self.assertEqual(
+                package.status,
+                "Delivered"
+            )
+
+            self.assertIsNotNone(
+                package.delivery_time
+            )
 
 
 if __name__ == "__main__":
