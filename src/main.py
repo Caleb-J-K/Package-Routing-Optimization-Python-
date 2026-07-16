@@ -1,48 +1,45 @@
 # StudentID: 012582173
 
-"""
-Loads package data from a CSV file and stores it in a custome hash table,
-also serves as the main entry point for the routing program.
-"""
-
 import csv
 from pathlib import Path
 from datetime import datetime
 
-from src.delivery_services import DeliveryService
+from src.delivery_services import DeliveryService, DELAYED_PACKAGES
 from src.distance_table import DistanceTable
 from src.hash_table import HashTable
 from src.package import Package
 
 
-# Resolve the base directory and data directory paths
+# Project file locations.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 DATA_DIR = BASE_DIR / "data"
 
 PACKAGE_FILE = DATA_DIR / "package_file.csv"
 DISTANCE_FILE = DATA_DIR / "distance_file.csv"
 
 
-def load_packages(filename: str | Path) -> HashTable:
-    """
-    Reads package data from a CSV file, 
-    creates Package objects, 
-    and inserts them into the hash table.
-    """
+def load_packages(
+    filename: str | Path,
+    distance_table: DistanceTable
+) -> HashTable:
 
     package_table = HashTable()
 
-    with open(filename, 'r', newline='') as file:
+    with open(filename, "r", newline="") as file:
 
         reader = csv.reader(file)
 
-        # Skip the header row
-        next(reader)  
+        # Skip CSV header.
+        next(reader)
 
         for row in reader:
+
             package_id = int(row[0])
-            address = row[1]
+
+            address = distance_table.find_full_address(
+                row[1]
+            )
+
             city = row[2]
             state = row[3]
             zip_code = row[4]
@@ -50,54 +47,68 @@ def load_packages(filename: str | Path) -> HashTable:
             weight = row[6]
             special_notes = row[7]
 
-            # Create a Package object using CSV data
-            package = Package(
-                package_id, 
-                address,
-                city, 
-                state, 
-                zip_code, 
-                deadline, 
-                weight, 
-                special_notes
-                )
-            
+            arrival_time = None
 
-            # Insert the package into the hash table
-            package_table.insert(package_id, package)
+            # Delayed packages arrive at the hub at 9:05 AM.
+            if package_id in DELAYED_PACKAGES:
+
+                arrival_time = datetime(
+                    2026,
+                    7,
+                    10,
+                    9,
+                    5
+                )
+
+
+            package = Package(
+                package_id,
+                address,
+                city,
+                state,
+                zip_code,
+                deadline,
+                weight,
+                special_notes,
+                arrival_time
+            )
+
+
+            # Store package by ID for fast lookup.
+            package_table.insert(
+                package_id,
+                package
+            )
 
     return package_table
 
-def initialize_system():
-    """
-    Loads all required data and creates the delivery system.
-    """
 
-    package_table = load_packages(PACKAGE_FILE)
+
+def initialize_system():
 
     distance_table = DistanceTable()
-    distance_table.load_distances(DISTANCE_FILE)
 
-    return package_table, distance_table
+    distance_table.load_distances(
+        DISTANCE_FILE
+    )
 
-# def main():
+    package_table = load_packages(
+        PACKAGE_FILE,
+        distance_table
+    )
 
-#     package_table, distance_table = initialize_system()
 
-#     delivery_service = DeliveryService(
-#         package_table,
-#         distance_table
-#     )
+    delivery_service = DeliveryService(
+        package_table,
+        distance_table
+    )
 
-#     delivery_service.assign_packages()
 
-#     delivery_service.simulate()
+    return package_table, delivery_service
+
 
 
 def display_menu():
-    """
-    Displays the main menu options.
-    """
 
     print(
         """
@@ -116,10 +127,6 @@ def display_menu():
 
 
 def lookup_package(package_table):
-    """
-    Looks up a package and displays its status
-    at a user-provided time.
-    """
 
     try:
 
@@ -134,13 +141,12 @@ def lookup_package(package_table):
         check_time = datetime.strptime(
             time_input,
             "%I:%M %p"
-        )
-
-        check_time = check_time.replace(
+        ).replace(
             year=2026,
             month=7,
             day=10
         )
+
 
     except ValueError:
 
@@ -164,11 +170,25 @@ def lookup_package(package_table):
 
         return
 
-
     status = package.get_status_at_time(
         check_time
     )
 
+    correction_time = datetime(
+        2026,
+        7,
+        10,
+        10,
+        20
+    )
+
+    if (
+        package.package_id == 9
+        and check_time < correction_time
+    ):
+        address = package.original_address
+    else:
+        address = package.address
 
     print(
         f"""
@@ -176,29 +196,98 @@ def lookup_package(package_table):
 Package ID: {package.package_id}
 
 Address:
-{package.address}
+{address}
+
+City:
+{package.city}
+
+State:
+{package.state}
+
+ZIP Code:
+{package.zip_code}
 
 Deadline:
 {package.deadline}
 
+Weight:
+{package.weight}
+
 Status:
 {status}
-
-Truck:
-{package.truck_id}
-
-Delivery Time:
-{package.delivery_time}
-------------------------------
 """
+    )
+
+
+    if package.truck_id is None:
+
+        print(
+            "Truck:\nN/A"
+        )
+
+    else:
+
+        print(
+            f"Truck:\n{package.truck_id}"
+        )
+
+
+    if status == "Delivered":
+
+        print(
+            f"\nDelivery Time:\n{package.delivery_time}"
+        )
+
+
+    print(
+        "------------------------------"
     )
 
 
 
 def display_packages(package_table):
-    """
-    Displays all packages.
-    """
+
+    try:
+
+        time_input = input(
+            "\nEnter time (HH:MM AM/PM): "
+        )
+
+        check_time = datetime.strptime(
+            time_input,
+            "%I:%M %p"
+        ).replace(
+            year=2026,
+            month=7,
+            day=10
+        )
+
+    except ValueError:
+
+        print(
+            "Invalid input."
+        )
+
+        return
+
+
+    print(
+        "\n"
+        + "=" * 125
+    )
+
+    print(
+        f"{'ID':<5}"
+        f"{'Address':<60}"
+        f"{'Deadline':<12}"
+        f"{'Weight':<8}"
+        f"{'Status':<12}"
+        f"{'Truck':<8}"
+        f"{'Delivery Time':<15}"
+    )
+
+    print("=" * 125)
+
 
     for package_id in range(1, 41):
 
@@ -207,32 +296,155 @@ def display_packages(package_table):
         )
 
         if package:
-            print(package)
+
+            correction_time = datetime(
+                2026,
+                7,
+                10,
+                10,
+                20
+            )
+
+            if (
+                package.package_id == 9
+                and check_time < correction_time
+            ):
+                address = package.original_address
+            else:
+                address = package.address
+
+            address = address.replace(
+                "\n",
+                " "
+            )
+
+            status = package.get_status_at_time(
+                check_time
+            )
+
+            delivery_time = "N/A"
+
+            if status == "Delivered" and package.delivery_time:
+
+                delivery_time = package.delivery_time.strftime(
+                    "%I:%M %p"
+                )
+
+            truck = (
+                package.truck_id
+                if package.truck_id is not None
+                else "N/A"
+            )
+
+            print(
+                f"{package.package_id:<5}"
+                f"{address:<60.60}"
+                f"{package.deadline:<12}"
+                f"{package.weight:<8}"
+                f"{status:<12}"
+                f"{truck:<8}"
+                f"{delivery_time:<15}"
+            )
 
 
+    print("=" * 125)
 
-def display_trucks(delivery_service):
-    """
-    Displays truck information.
-    """
+
+def display_trucks(
+    delivery_service,
+    package_table
+) -> None:
+
+    try:
+
+        time_input = input(
+            "\nEnter time (HH:MM AM/PM): "
+        )
+
+        check_time = datetime.strptime(
+            time_input,
+            "%I:%M %p"
+        ).replace(
+            year=2026,
+            month=7,
+            day=10
+        )
+
+    except ValueError:
+
+        print("Invalid input.")
+        return
+
 
     for truck in delivery_service.trucks:
 
         print(
-            f"""
-Truck {truck.truck_id}
-Packages: {truck.packages}
-Mileage: {truck.mileage:.2f}
-Location:
-{truck.current_location}
-"""
+            f"\n{'=' * 40}"
         )
+
+        print(
+            f"Truck {truck.truck_id}"
+        )
+
+        print(
+            f"Departure: "
+            f"{truck.departure_time.strftime('%I:%M %p') if truck.departure_time else 'N/A'}"
+        )
+
+        if (
+        truck.departure_time is None
+        or check_time < truck.departure_time
+        ):
+
+            status = "At Hub"
+
+        elif any(
+            package.truck_id == truck.truck_id
+            and package.get_status_at_time(check_time) == "En Route"
+            for package_id in range(1, 41)
+            for package in [package_table.search(package_id)]
+        ):
+            status = "En Route"
+
+        else:
+
+            status = "Completed"
+
+
+        print(
+            f"Status: {status}"
+        )
+
+
+        print("\nAssigned Packages:")
+
+        for package_id in range(1, 41):
+
+            package = package_table.search(
+                package_id
+            )
+
+            if (
+                package is not None
+                and package.truck_id == truck.truck_id
+            ):
+
+                status = package.get_status_at_time(
+                    check_time
+                )
+
+                print(
+                    f"  Package {package.package_id:<2}"
+                    f" - {status}"
+                )
 
 
 
 def run_application():
 
     package_table, delivery_service = initialize_system()
+
+    simulation_complete = False
 
 
     while True:
@@ -246,9 +458,18 @@ def run_application():
 
         if choice == "1":
 
-            delivery_service.assign_packages()
+            if simulation_complete:
+
+                print(
+                    "\nSimulation has already been completed."
+                )
+
+                continue
+
 
             delivery_service.simulate()
+
+            simulation_complete = True
 
             print(
                 "\nSimulation complete."
@@ -272,7 +493,8 @@ def run_application():
         elif choice == "4":
 
             display_trucks(
-                delivery_service
+                delivery_service,
+                package_table
             )
 
 
@@ -294,4 +516,5 @@ def run_application():
 
 
 if __name__ == "__main__":
+
     run_application()
