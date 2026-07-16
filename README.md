@@ -44,35 +44,7 @@ This project was developed as part of the Western Governors University Computer 
 - Git / GitHub
 
 
----
-
-## Project Structure
-
-```text
-C950 Project/
-│
-├── data/
-│   ├── distance_file.csv
-│   └── package_file.csv
-│
-├── src/
-│   ├── main.py
-│   ├── delivery_services.py
-│   ├── routing.py
-│   ├── truck.py
-│   ├── driver.py
-│   ├── package.py
-│   ├── hash_table.py
-│   └── distance_table.py
-│
-├── tests/
-│
-└── README.md
-```
-
----
-
-## Routing Algorithm
+## Distance Table Design
 
 Package deliveries are performed using a nearest-neighbor routing algorithm.
 
@@ -179,8 +151,7 @@ Example output:
 
 ```
 ......
-----------------------------------------------------------------------
-Ran 22 tests in 0.04s
+Ran 6 tests in 0.02s
 
 OK
 ```
@@ -210,13 +181,8 @@ This project emphasizes several software engineering principles:
 
 Potential future enhancements include:
 
-- Docker containerization
-- PostgreSQL database integration
-- REST API for package management
-- React-based web interface
-- Interactive route visualization
-- More advanced route optimization algorithms (2-opt, A*, etc.)
-- Persistent package history and reporting
-
-
----
+Implementing route optimization algorithms
+Adding package tracking history
+Adding a graphical user interface
+Improving data validation
+Adding additional automated tests
