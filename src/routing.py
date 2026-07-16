@@ -16,11 +16,19 @@ class Routing:
         self.package_table = package_table
         self.distance_table = distance_table
 
-
     def deliver_truck(
         self,
         truck: Truck
     ) -> None:
+        
+        # Every package leaves the hub when the truck departs.
+        for package_id in truck.packages:
+
+            package = self.package_table.search(package_id)
+
+            package.departure_time = truck.departure_time
+
+            package.truck_id = truck.truck_id
 
         # Continue delivering packages until the truck is empty.
         while truck.packages:
@@ -45,7 +53,6 @@ class Routing:
                 next_package_id
             )
 
-
         # Return truck to hub after deliveries.
         # distance = self.distance_table.get_distance(
         #     truck.current_location,
@@ -56,8 +63,6 @@ class Routing:
 
         # truck.current_location = Truck.HUB_ADDRESS
 
-
-
     def find_next_package(
         self,
         truck: Truck
@@ -66,24 +71,20 @@ class Routing:
         shortest_distance = float("inf")
         closest_package = None
 
-
         for package_id in truck.packages:
 
             package = self.package_table.search(
                 package_id
             )
 
-
             if package.delivery_time is not None:
                 continue
-
 
             # Delayed packages cannot leave before arrival.
             if package.arrival_time is not None:
 
                 if truck.current_time < package.arrival_time:
                     continue
-
 
             # Package 9 address is unknown until 10:20 AM.
             # It can be loaded, but cannot be delivered before then.
@@ -99,22 +100,17 @@ class Routing:
             ):
                 continue
 
-
             distance = self.distance_table.get_distance(
                 truck.current_location,
                 package.address
             )
-
 
             if distance < shortest_distance:
 
                 shortest_distance = distance
                 closest_package = package_id
 
-
         return closest_package
-
-
 
     def deliver_package(
         self,
@@ -125,7 +121,6 @@ class Routing:
         package = self.package_table.search(
             package_id
         )
-
 
         # Update package 9 address after the correction time.
         if (
@@ -140,34 +135,24 @@ class Routing:
         ):
 
             package.update_address(
-                "Third District Juvenile Court\n410 S State St",
+                "Third District Juvenile Court 410 S State St",
                 "Salt Lake City",
                 "UT",
                 "84111"
             )
-
-
-        # Record when the package leaves the hub.
-        package.departure_time = truck.current_time
-
 
         distance = self.distance_table.get_distance(
             truck.current_location,
             package.address
         )
 
-
         truck.travel(distance)
 
         truck.current_location = package.address
 
-
         package.status = "Delivered"
 
         package.delivery_time = truck.current_time
-
-        package.truck_id = truck.truck_id
-
 
         truck.remove_package(
             package_id

@@ -19,6 +19,7 @@ class Package:
         
         # Package and delivery information
         self.package_id: int= package_id
+        self.original_address: str = address
         self.address: str = address
         self.city: str = city
         self.state: str = state

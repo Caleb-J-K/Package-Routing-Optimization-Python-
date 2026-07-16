@@ -174,6 +174,21 @@ def lookup_package(package_table):
         check_time
     )
 
+    correction_time = datetime(
+        2026,
+        7,
+        10,
+        10,
+        20
+    )
+
+    if (
+        package.package_id == 9
+        and check_time < correction_time
+    ):
+        address = package.original_address
+    else:
+        address = package.address
 
     print(
         f"""
@@ -181,7 +196,7 @@ def lookup_package(package_table):
 Package ID: {package.package_id}
 
 Address:
-{package.address}
+{address}
 
 City:
 {package.city}
@@ -204,10 +219,7 @@ Status:
     )
 
 
-    if (
-        package.departure_time is None
-        or check_time < package.departure_time
-    ):
+    if package.truck_id is None:
 
         print(
             "Truck:\nN/A"
@@ -260,71 +272,171 @@ def display_packages(package_table):
 
 
     print(
-        f"\nPackage Status at {check_time.strftime('%I:%M %p')}\n"
+        "\n"
+        + "=" * 125
     )
 
-    # Display all packages with their status at the selected time.
+    print(
+        f"{'ID':<5}"
+        f"{'Address':<60}"
+        f"{'Deadline':<12}"
+        f"{'Weight':<8}"
+        f"{'Status':<12}"
+        f"{'Truck':<8}"
+        f"{'Delivery Time':<15}"
+    )
+
+    print("=" * 125)
+
+
     for package_id in range(1, 41):
 
         package = package_table.search(
             package_id
         )
 
-        if package is None:
-            continue
+        if package:
 
-
-        status = package.get_status_at_time(
-            check_time
-        )
-
-
-        print(
-            f"""
-Package {package.package_id} | 
-{package.address}, {package.city}, {package.state}, {package.zip_code} |
-Deadline: {package.deadline} |
-Weight: {package.weight} |
-Status: {status}"""
-        )
-
-        # Show truck assignment after the package has left the hub.
-        if (
-            package.departure_time is not None
-            and check_time >= package.departure_time
-        ):
-
-            print(
-                f"Truck: {package.truck_id}"
+            correction_time = datetime(
+                2026,
+                7,
+                10,
+                10,
+                20
             )
 
-        # Show delivery time only after delivery has occurred.
-        if (
-            status == "Delivered"
-            and package.delivery_time is not None
-        ):
+            if (
+                package.package_id == 9
+                and check_time < correction_time
+            ):
+                address = package.original_address
+            else:
+                address = package.address
+
+            address = address.replace(
+                "\n",
+                " "
+            )
+
+            status = package.get_status_at_time(
+                check_time
+            )
+
+            delivery_time = "N/A"
+
+            if status == "Delivered" and package.delivery_time:
+
+                delivery_time = package.delivery_time.strftime(
+                    "%I:%M %p"
+                )
+
+            truck = (
+                package.truck_id
+                if package.truck_id is not None
+                else "N/A"
+            )
 
             print(
-                f"Delivery Time: "
-                f"{package.delivery_time.strftime('%I:%M %p')}"
+                f"{package.package_id:<5}"
+                f"{address:<60.60}"
+                f"{package.deadline:<12}"
+                f"{package.weight:<8}"
+                f"{status:<12}"
+                f"{truck:<8}"
+                f"{delivery_time:<15}"
             )
 
 
+    print("=" * 125)
 
-def display_trucks(delivery_service):
 
-    # Display current truck information.
+def display_trucks(
+    delivery_service,
+    package_table
+) -> None:
+
+    try:
+
+        time_input = input(
+            "\nEnter time (HH:MM AM/PM): "
+        )
+
+        check_time = datetime.strptime(
+            time_input,
+            "%I:%M %p"
+        ).replace(
+            year=2026,
+            month=7,
+            day=10
+        )
+
+    except ValueError:
+
+        print("Invalid input.")
+        return
+
+
     for truck in delivery_service.trucks:
 
         print(
-            f"""
-Truck {truck.truck_id}
-Packages: {truck.packages}
-Mileage: {truck.mileage:.2f}
-Location:
-{truck.current_location}
-"""
+            f"\n{'=' * 40}"
         )
+
+        print(
+            f"Truck {truck.truck_id}"
+        )
+
+        print(
+            f"Departure: "
+            f"{truck.departure_time.strftime('%I:%M %p') if truck.departure_time else 'N/A'}"
+        )
+
+        if (
+        truck.departure_time is None
+        or check_time < truck.departure_time
+        ):
+
+            status = "At Hub"
+
+        elif any(
+            package.truck_id == truck.truck_id
+            and package.get_status_at_time(check_time) == "En Route"
+            for package_id in range(1, 41)
+            for package in [package_table.search(package_id)]
+        ):
+            status = "En Route"
+
+        else:
+
+            status = "Completed"
+
+
+        print(
+            f"Status: {status}"
+        )
+
+
+        print("\nAssigned Packages:")
+
+        for package_id in range(1, 41):
+
+            package = package_table.search(
+                package_id
+            )
+
+            if (
+                package is not None
+                and package.truck_id == truck.truck_id
+            ):
+
+                status = package.get_status_at_time(
+                    check_time
+                )
+
+                print(
+                    f"  Package {package.package_id:<2}"
+                    f" - {status}"
+                )
 
 
 
@@ -381,7 +493,8 @@ def run_application():
         elif choice == "4":
 
             display_trucks(
-                delivery_service
+                delivery_service,
+                package_table
             )
 
 

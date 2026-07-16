@@ -1,3 +1,5 @@
+import datetime
+
 from src.truck import Truck
 
 
@@ -12,6 +14,8 @@ class Driver:
 
         # Stores the truck currently assigned to this driver.
         self.current_truck: Truck | None = None
+
+        self.available_time: datetime | None = None
 
     def assign_truck(self, truck: Truck) -> None:
 

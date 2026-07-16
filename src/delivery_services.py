@@ -144,14 +144,13 @@ class DeliveryService:
             )
 
 
-    def dispatch_trucks(self) -> None:
+    def dispatch_trucks(
+        self,
+        trucks_to_dispatch: list[Truck]
+    ) -> None:
 
-        # Only two trucks can operate because there are two drivers.
-        for truck in self.trucks:
-
-            # Do not dispatch trucks with no packages.
-            if not truck.packages:
-                continue
+        # Dispatch only the trucks available at this time.
+        for truck in trucks_to_dispatch:
 
             available_driver = self.get_available_driver()
 
@@ -164,29 +163,39 @@ class DeliveryService:
                 self.current_time
             )
 
-            self.routing.deliver_truck(truck)
+            self.routing.deliver_truck(
+                truck
+            )
 
-            available_driver.release_truck()
+            available_driver.available_time = truck.current_time
+            available_driver.current_truck = None
 
     def get_available_driver(self):
 
         for driver in self.drivers:
-            if driver.available:
+
+            if driver.available_time is None:
+                return driver
+            
+            if self.current_time >= driver.available_time:
+                driver.available = True
                 return driver
 
         return None
 
     def simulate(self) -> None:
 
-        # Assign morning packages.
+        # Assign all morning packages.
         self.assign_packages()
 
 
-        # Dispatch first two trucks.
-        self.dispatch_trucks()
+        # Send first two trucks.
+        self.dispatch_trucks(
+            self.trucks[:2]
+        )
 
 
-        # Advance time to delayed package arrival.
+        # Advance to delayed package arrival if needed.
         self.current_time = datetime(
             2026,
             7,
@@ -195,13 +204,17 @@ class DeliveryService:
             5
         )
 
-
         self.load_delayed_packages()
 
 
-        # Dispatch remaining deliveries.
-        self.dispatch_trucks()
+        # Wait until a driver returns.
+        self.advance_to_next_driver()
 
+
+        # Send remaining truck.
+        self.dispatch_trucks(
+            self.trucks[2:]
+        )
 
     def total_mileage(self) -> float:
 
@@ -209,3 +222,17 @@ class DeliveryService:
             truck.mileage
             for truck in self.trucks
         )
+    
+    def advance_to_next_driver(self) -> None:
+
+        available_times = [
+        driver.available_time
+        for driver in self.drivers
+            if driver.available_time is not None
+        ]
+
+        if available_times:
+
+            self.current_time = min(
+            available_times
+            )
